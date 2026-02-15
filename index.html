@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TERMINAL ACCESS</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #00ff41;
+            font-family: "Courier New", Courier, monospace;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none; 
+        }
+        .container {
+            border: 1px solid #00ff41;
+            padding: 30px 15px;
+            background: #000;
+            width: 85%;
+            max-width: 400px;
+            box-shadow: 0 0 15px #00ff41;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .page { display: none; width: 100%; }
+        .active { display: block; }
+        
+        h2 { 
+            font-size: 1rem; 
+            line-height: 1.6; 
+            text-align: center;
+            margin-bottom: 25px; 
+            width: 100%;
+        }
+        
+        .btn-group { 
+            display: flex; 
+            justify-content: center;
+            gap: 20px;
+            min-height: 100px;
+            width: 100%;
+            position: relative;
+        }
+
+        button { 
+            border: none; 
+            width: 95px; 
+            height: 40px;
+            cursor: pointer; 
+            font-weight: bold;
+            font-size: 15px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        /* “是”按钮：调暗一点，降低存在感 */
+        #yes-btn {
+            background: #008f11; 
+            color: #000;
+        }
+
+        /* “否/Exit”按钮：改为醒目的蓝色陷阱 */
+        #no-btn { 
+            background: #007bff; /* 醒目的标准蓝色 */
+            color: #ffffff;      /* 白色文字，对比度极高 */
+            border: 1px solid #0056b3;
+            white-space: nowrap;
+            position: relative;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4); /* 增加一点光晕感 */
+        }
+
+        button:active { 
+            background: #fff !important; 
+            color: #000 !important;
+        }
+
+        input { 
+            background: #000; 
+            border: 1px solid #00ff41; 
+            color: #00ff41; 
+            padding: 10px; 
+            margin: 20px auto;
+            text-align: center;
+            width: 80%; 
+            display: block;
+            font-size: 20px;
+            outline: none;
+        }
+        .scary-text { color: #ff0000; font-size: 32px; font-weight: bold; text-align: center; }
+        .clown-icon { font-size: 70px; text-align: center; display: block; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="q-box" class="page active">
+            <h2 id="question">警告：检测到当前操作涉嫌违反《全球网络主权防御公约》，确认继续？</h2>
+            <div class="btn-group">
+                <button id="yes-btn" onclick="handleYes()">是</button>
+                <button id="no-btn" onmouseover="moveBtn(event)" ontouchstart="moveBtn(event)" onclick="return false;">否</button>
+            </div>
+        </div>
+
+        <div id="login-screen" class="page">
+            <h2 style="text-align: center;">AUTHENTICATION REQUIRED<br>请输入 6 位授权密钥</h2>
+            <input type="tel" id="pw" placeholder="******" maxlength="6">
+            <br>
+            <button onclick="runPrank()" id="yes-btn" style="margin: 0 auto; width: 120px;">确认解密</button>
+        </div>
+
+        <div id="prank-screen" class="page">
+            <div class="scary-text">你被骗了！</div>
+            <div class="clown-icon">🤡</div>
+            <p style="text-align: center;">刚才是不是差点急着点退出？</p>
+        </div>
+    </div>
+
+    <audio id="music" preload="auto">
+        <source src="https://www.myinstants.com/media/sounds/rick-rolled.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let step = 1;
+        const questions = [
+            "警告：检测到当前操作涉嫌违反《全球网络主权防御公约》，确认继续？",
+            "风险提示：系统将自动获取您的硬件 ID 并同步至云端，确认继续？",
+            "检测到异常操作！点击 Enter 继续，点击 Exit 立即退出。"
+        ];
+
+        function handleYes() {
+            if (step < 3) {
+                step++;
+                document.getElementById('question').innerText = questions[step - 1];
+                if (step === 3) {
+                    document.getElementById('yes-btn').innerText = "Enter";
+                    document.getElementById('no-btn').innerText = "Exit";
+                    // 第三步让颜色更刺眼一点
+                    document.getElementById('no-btn').style.background = "#ff1111"; // 最后一关 Exit 变红，增加紧迫感
+                }
+                resetNoBtn();
+            } else {
+                document.getElementById('q-box').classList.remove('active');
+                document.getElementById('login-screen').classList.add('active');
+            }
+        }
+
+        function moveBtn(e) {
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
+
+            const noBtn = document.getElementById('no-btn');
+            noBtn.style.position = 'fixed';
+            
+            // 随机移动
+            const x = Math.random() * (window.innerWidth - 100);
+            const y = Math.random() * (window.innerHeight - 50);
+            
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+        }
+
+        function resetNoBtn() {
+            const noBtn = document.getElementById('no-btn');
+            noBtn.style.position = 'relative';
+            noBtn.style.left = '0';
+            noBtn.style.top = '0';
+        }
+
+        function runPrank() {
+            const input = document.getElementById('pw').value;
+            const music = document.getElementById('music');
+            if (input === '492107' || input === '0007') {
+                music.play();
+                document.getElementById('login-screen').classList.remove('active');
+                document.getElementById('prank-screen').classList.add('active');
+            } else {
+                alert('ACCESS DENIED: 密钥错误，请重试');
+            }
+        }
+    </script>
+</body>
+</html>
